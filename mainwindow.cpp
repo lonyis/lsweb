@@ -29,11 +29,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(p_php4, SIGNAL(readyRead()), this, SLOT(phpReadOutput()));
     connect(p_nginx, SIGNAL(readyRead()), this, SLOT(nginxReadOutput()));
 
-    connect(p_php, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(phpAbnormal(p_php, QProcess::ExitStatus)));
-    connect(p_php1, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(phpAbnormal(p_php1, QProcess::ExitStatus)));
-    connect(p_php2, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(phpAbnormal(p_php2, QProcess::ExitStatus)));
-    connect(p_php3, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(phpAbnormal(p_php3, QProcess::ExitStatus)));
-    connect(p_php4, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(phpAbnormal(p_php4, QProcess::ExitStatus)));
+    connect(p_php, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finish_process(int, QProcess::ExitStatus)));
+    connect(p_php1, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finish_process_p1(int, QProcess::ExitStatus)));
+    connect(p_php2, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finish_process_p2(int, QProcess::ExitStatus)));
+    connect(p_php3, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finish_process_p3(int, QProcess::ExitStatus)));
+    connect(p_php4, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finish_process_p4(int, QProcess::ExitStatus)));
 
     runPath = QCoreApplication::applicationDirPath();
 
@@ -221,6 +221,9 @@ void MainWindow::closeTrayIcons()
         p_php2->close();
         p_php3->close();
         p_php4->close();
+        std::string name = "nginx.exe";
+        kill *nginx_kill = new kill();
+        nginx_kill->kills(name);
 
         qApp->quit(); //quit
     }
@@ -249,6 +252,7 @@ void MainWindow::on_pushButton_start_clicked()
     p_php4->start(dir_phpcgi);
     this->ui->pushButton_stop->setDisabled(false);
     this->ui->pushButton_start->setDisabled(true);
+    this->ui->php_cgi->setDisabled(true);
 }
 
 void MainWindow::readOutput()
@@ -274,15 +278,83 @@ void MainWindow::phpReadOutput()
     this->ui->textEdit->append("ok");
 }
 
-void MainWindow::phpAbnormal(QProcess php_process, QProcess::ExitStatus exitStatus)
+void MainWindow::finish_process(int exitCode, QProcess::ExitStatus exitStatus)
 {
-//    if(status < 0) {
-//        php_process->start();
-//    } else {
-//        this->ui->textEdit->append("php finished");
-//    }
-    QString str = QString::number(exitStatus);
-    this->ui->textEdit->append(str);
+    if(exitCode > -10 && exitCode < 10) {
+        QDateTime current_date_time = QDateTime::currentDateTime();
+        QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm:ss");
+
+        QString phpcgipost = this->ui->php_cgi->text();
+        dir_phpcgi = runPath + "/php/php-cgi.exe -b "+ phpcgipost +" -c " + runPath + "/conf/php.ini";
+
+        p_php->start(dir_phpcgi);
+
+        QString exitcstr = QString::number(exitCode);
+        this->ui->textEdit->append(current_date + "php1 cli exit id:" + exitcstr + " restart php-cgi1... " + dir_phpcgi);
+    }
+}
+
+void MainWindow::finish_process_p1(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if(exitCode == 0 || exitCode == 1) {
+        QDateTime current_date_time = QDateTime::currentDateTime();
+        QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm:ss");
+
+        QString phpcgipost = this->ui->php_cgi->text();
+        dir_phpcgi = runPath + "/php/php-cgi.exe -b "+ phpcgipost +" -c " + runPath + "/conf/php.ini";
+
+        p_php1->start(dir_phpcgi);
+
+        QString exitcstr = QString::number(exitCode);
+        this->ui->textEdit->append(current_date + "php2 cli exit id:" + exitcstr + " restart php-cgi2... " + dir_phpcgi);
+    }
+}
+
+void MainWindow::finish_process_p2(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if(exitCode == 0 || exitCode == 1) {
+        QDateTime current_date_time = QDateTime::currentDateTime();
+        QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm:ss");
+
+        QString phpcgipost = this->ui->php_cgi->text();
+        dir_phpcgi = runPath + "/php/php-cgi.exe -b "+ phpcgipost +" -c " + runPath + "/conf/php.ini";
+
+        p_php2->start(dir_phpcgi);
+        QString exitcstr = QString::number(exitCode);
+        this->ui->textEdit->append(current_date + "php3 cli exit id:" + exitcstr + " restart php-cgi3... " + dir_phpcgi);
+    }
+}
+
+void MainWindow::finish_process_p3(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if(exitCode == 0 || exitCode == 1) {
+        QDateTime current_date_time = QDateTime::currentDateTime();
+        QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm:ss");
+
+        QString phpcgipost = this->ui->php_cgi->text();
+        dir_phpcgi = runPath + "/php/php-cgi.exe -b "+ phpcgipost +" -c " + runPath + "/conf/php.ini";
+
+        p_php3->start(dir_phpcgi);
+        QString exitcstr = QString::number(exitCode);
+        this->ui->textEdit->append(current_date + "php4 cli exit id:" + exitcstr + " restart php-cgi4... " + dir_phpcgi);
+
+    }
+}
+
+void MainWindow::finish_process_p4(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if(exitCode == 0 || exitCode == 1) {
+        QDateTime current_date_time = QDateTime::currentDateTime();
+        QString current_date = current_date_time.toString("yyyy-MM-dd hh:mm:ss");
+
+        QString phpcgipost = this->ui->php_cgi->text();
+        dir_phpcgi = runPath + "/php/php-cgi.exe -b "+ phpcgipost +" -c " + runPath + "/conf/php.ini";
+
+        p_php4->start(dir_phpcgi);
+
+        QString exitcstr = QString::number(exitCode);
+        this->ui->textEdit->append(current_date + "php5 cli exit id:" + exitcstr + " restart php-cgi5... " + dir_phpcgi);
+    }
 }
 
 void MainWindow::on_pushButton_stop_clicked()
@@ -301,6 +373,7 @@ void MainWindow::on_pushButton_stop_clicked()
 
     this->ui->pushButton_stop->setDisabled(true);
     this->ui->pushButton_start->setDisabled(false);
+    this->ui->php_cgi->setDisabled(false);
 }
 
 void MainWindow::on_pushButton_3_clicked()

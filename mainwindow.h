@@ -64,7 +64,11 @@ private slots:
     void readOutput();
     void nginxReadOutput();
     void phpReadOutput();
-    void phpAbnormal(QProcess php_process, QProcess::ExitStatus exitStatus);
+    void finish_process(int exitCode, QProcess::ExitStatus exitStatus);
+    void finish_process_p1(int exitCode, QProcess::ExitStatus exitStatus);
+    void finish_process_p2(int exitCode, QProcess::ExitStatus exitStatus);
+    void finish_process_p3(int exitCode, QProcess::ExitStatus exitStatus);
+    void finish_process_p4(int exitCode, QProcess::ExitStatus exitStatus);
     void lmenudo(QAction *action);
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
     void closeTrayIcons();
