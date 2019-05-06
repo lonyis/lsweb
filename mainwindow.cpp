@@ -13,6 +13,30 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     //
+    runPath = QCoreApplication::applicationDirPath();
+    this->init_connect();
+    ui->setupUi(this);
+
+    //去掉最大化按钮
+    this->setWindowFlags(this->windowFlags()&~Qt::WindowMaximizeButtonHint);
+    setFixedSize(640, 426);
+    setWindowIcon(QIcon(QPixmap(":/img/zddic.ico")));
+
+    this->ui->pushButton_stop->setDisabled(true);
+    this->ui->textEdit->setReadOnly(true);
+    this->init_menu();
+    CreatTrayIcon();
+
+    this->init_fpmconf();
+    this->init_autorun();
+}
+
+/**
+ *
+ * @brief MainWindow::init_connect
+ */
+void MainWindow::init_connect()
+{
     p_cmd = new QProcess;
     p_php = new QProcess;
     p_php1 = new QProcess;
@@ -34,17 +58,16 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(p_php2, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finish_process_p2(int, QProcess::ExitStatus)));
     connect(p_php3, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finish_process_p3(int, QProcess::ExitStatus)));
     connect(p_php4, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finish_process_p4(int, QProcess::ExitStatus)));
+}
 
-    runPath = QCoreApplication::applicationDirPath();
-
-    ui->setupUi(this);
-    //去掉最大化按钮
-    this->setWindowFlags(this->windowFlags()&~Qt::WindowMaximizeButtonHint);
-    setWindowIcon(QIcon(QPixmap(":/img/zddic.ico")));
+/**
+ * @brief MainWindow::init_menu
+ */
+void MainWindow::init_menu()
+{
     myTrayIcon = new QSystemTrayIcon(this);
     lmenu = new QMenu();
     connect(lmenu,SIGNAL(triggered(QAction *)),this,SLOT(lmenudo(QAction *)));
-    setFixedSize(640, 426);
 
     r_nginx = new QAction(lmenu);
     r_phpc = new QAction(lmenu);
@@ -68,22 +91,14 @@ MainWindow::MainWindow(QWidget *parent) :
     r_phpinfo->setText("php info");
 
     ui->pushButton_3->setMenu(lmenu);
-    this->ui->pushButton_stop->setDisabled(true);
-    this->ui->textEdit->setReadOnly(true);
+}
 
-    //fpm
-    configIni = new QSettings("server_conf.ini", QSettings::IniFormat);
-    QString fpm_addr = configIni->value("/server/fpm").toString();
-    if(fpm_addr.isEmpty()) {
-        configIni->setValue("/server/fpm", "127.0.0.1:9000");
-        this->ui->php_cgi->setText("127.0.0.1:9000");
-    } else {
-        this->ui->php_cgi->setText(fpm_addr);
-    }
-    dir_nginx = runPath + "/nginx/nginx.exe";
-    CreatTrayIcon();
-
-    //auto
+/**
+ * @brief MainWindow::init_autorun
+ */
+void MainWindow::init_autorun()
+{
+    //auto run
     application_name = QApplication::applicationName();
     QString is_auto = configIni->value("/run/is_auto").toString();
     if(is_auto.isEmpty()) {
@@ -102,6 +117,20 @@ MainWindow::MainWindow(QWidget *parent) :
     } else {
         this->is_auto_config = 0;
     }
+}
+
+void MainWindow::init_fpmconf()
+{
+    //fpm
+    configIni = new QSettings("server_conf.ini", QSettings::IniFormat);
+    QString fpm_addr = configIni->value("/server/fpm").toString();
+    if(fpm_addr.isEmpty()) {
+        configIni->setValue("/server/fpm", "127.0.0.1:9000");
+        this->ui->php_cgi->setText("127.0.0.1:9000");
+    } else {
+        this->ui->php_cgi->setText(fpm_addr);
+    }
+    dir_nginx = runPath + "/nginx/nginx.exe";
 }
 
 MainWindow::~MainWindow()
@@ -210,9 +239,6 @@ void MainWindow::closeTrayIcons()
     } else if (button == QMessageBox::Yes) {
         QString str = dir_nginx + " -s stop";
 
-        char*  ch;
-        QByteArray ba = str.toLatin1();
-        ch=ba.data();
         //system(ch);
         //close nginx php
         p_nginx->close();
@@ -392,10 +418,9 @@ void MainWindow::lmenudo(QAction *action)
         this->ui->textEdit->append(current_date + " restart nginx... " + dir_nginx + " -s stop" );
         QString str = dir_nginx + " -s stop";
 
-        char*  ch;
-        QByteArray ba = str.toLatin1();
-        ch=ba.data();
-        //system(ch);
+        std::string name = "nginx.exe";
+        kill *nginx_kill = new kill();
+        nginx_kill->kills(name);
 
         p_nginx->close();
         p_nginx->start(dir_nginx);

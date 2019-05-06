@@ -80,6 +80,10 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    void init_connect();
+    void init_menu();
+    void init_autorun();
+    void init_fpmconf();
     QString application_name;
     QSettings *configIni;
     QSettings *auto_settings;
