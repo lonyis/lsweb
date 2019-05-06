@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/img">
+        <file>zddic.ico</file>
+        <file>zhidd.png</file>
+    </qresource>
+</RCC>
